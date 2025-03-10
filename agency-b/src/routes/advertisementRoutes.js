@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const router = express.Router();
 const Advertisement = require("../models/Advertisment");
 
@@ -14,10 +15,28 @@ router.get("/", async (req, res) => {
   }
 });
 
+// router.post("/", async (req, res) => {
+//   try {
+//     const ad = new Advertisement(req.body);
+//     ad.totalCost = ad.duration * ad.show.pricePerMinute;
+//     await ad.save();
+//     res.status(201).json(ad);
+//   } catch (err) {
+//     res.status(400).json({ message: err.message });
+//   }
+// });
 router.post("/", async (req, res) => {
   try {
+    const { show, duration } = req.body;
+
+    const showData = await mongoose.model("Show").findById(show);
+    if (!showData) {
+      return res.status(400).json({ message: "Show not found" });
+    }
+
     const ad = new Advertisement(req.body);
-    ad.totalCost = ad.duration * ad.show.pricePerMinute;
+    ad.totalCost = duration * showData.pricePerMinute;
+
     await ad.save();
     res.status(201).json(ad);
   } catch (err) {
